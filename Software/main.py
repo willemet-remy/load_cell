@@ -26,6 +26,8 @@ class MainWindow(QMainWindow):
         self.weight_data = [[], [], [], []]
         self.curves = []
         
+        self.scale_controls = []
+        
         self.init_ui()
         self.refresh_ports()
         
@@ -54,63 +56,81 @@ class MainWindow(QMainWindow):
         conn_group.setLayout(conn_layout)
         left_panel.addWidget(conn_group)
         
-        # Measurement Group
-        meas_group = QGroupBox("Measurement Logging")
-        meas_layout = QVBoxLayout()
+        # Scale Controls Group
+        scales_layout = QGridLayout()
         
-        self.le_meas_name = QLineEdit()
-        self.le_meas_name.setPlaceholderText("Measurement Name")
-        
-        interval_layout = QHBoxLayout()
-        interval_layout.addWidget(QLabel("Interval (sec):"))
-        self.sb_interval = QSpinBox()
-        self.sb_interval.setRange(1, 3600)
-        self.sb_interval.setValue(30)
-        interval_layout.addWidget(self.sb_interval)
-        
-        self.btn_start_stop = QPushButton("Start Logging")
-        self.btn_start_stop.clicked.connect(self.toggle_logging)
-        
-        meas_layout.addWidget(QLabel("Name:"))
-        meas_layout.addWidget(self.le_meas_name)
-        meas_layout.addLayout(interval_layout)
-        meas_layout.addWidget(self.btn_start_stop)
-        meas_group.setLayout(meas_layout)
-        left_panel.addWidget(meas_group)
-        
-        # Calibration Groups
-        self.calib_spins = []
         for i in range(4):
-            cal_group = QGroupBox(f"Scale {i}")
+            cal_group = QGroupBox(f"Scale {i+1}")
             cal_layout = QGridLayout()
             
+            # Tare / Calibrate
             btn_tare = QPushButton("Tare")
             btn_tare.clicked.connect(lambda checked, idx=i: self.tare_scale(idx))
             
             spin_cal = QDoubleSpinBox()
             spin_cal.setRange(0.1, 5000.0)
             spin_cal.setValue(500.0)
-            self.calib_spins.append(spin_cal)
             
             btn_cal = QPushButton("Calibrate")
             btn_cal.clicked.connect(lambda checked, idx=i: self.calibrate_scale(idx))
             
+            # Measurement Logging
+            le_meas_name = QLineEdit()
+            le_meas_name.setPlaceholderText("Measurement Name")
+            
+            sb_interval = QSpinBox()
+            sb_interval.setRange(1, 3600)
+            sb_interval.setValue(30)
+            
+            btn_start_stop = QPushButton("Start Logging")
+            btn_start_stop.clicked.connect(lambda checked, idx=i: self.toggle_logging(idx))
+            
+            # Layout logic
             cal_layout.addWidget(btn_tare, 0, 0, 1, 2)
-            cal_layout.addWidget(QLabel("Known Weight (g):"), 1, 0)
+            cal_layout.addWidget(QLabel("Known Wt (g):"), 1, 0)
             cal_layout.addWidget(spin_cal, 1, 1)
             cal_layout.addWidget(btn_cal, 2, 0, 1, 2)
             
-            cal_group.setLayout(cal_layout)
-            left_panel.addWidget(cal_group)
+            # Add a separator line
+            line = QWidget()
+            line.setFixedHeight(2)
+            line.setStyleSheet("background-color: #c0c0c0;")
+            cal_layout.addWidget(line, 3, 0, 1, 2)
             
+            cal_layout.addWidget(QLabel("Name:"), 4, 0)
+            cal_layout.addWidget(le_meas_name, 4, 1)
+            cal_layout.addWidget(QLabel("Interval(s):"), 5, 0)
+            cal_layout.addWidget(sb_interval, 5, 1)
+            cal_layout.addWidget(btn_start_stop, 6, 0, 1, 2)
+            
+            self.scale_controls.append({
+                'spin_cal': spin_cal,
+                'le_name': le_meas_name,
+                'sb_interval': sb_interval,
+                'btn_start_stop': btn_start_stop
+            })
+            
+            cal_group.setLayout(cal_layout)
+            # Add to a 2x2 grid in the sidebar
+            row = i // 2
+            col = i % 2
+            scales_layout.addWidget(cal_group, row, col)
+            
+        left_panel.addLayout(scales_layout)
         left_panel.addStretch()
+        
+        # Version Label
+        lbl_version = QLabel("Rémy Willemet - v1.0.0")
+        lbl_version.setStyleSheet("color: gray; font-size: 10px;")
+        left_panel.addWidget(lbl_version)
+        
         main_layout.addLayout(left_panel, 1)
         
         # Right Panel (Plots)
         plot_layout = QGridLayout()
         self.plots = []
         for i in range(4):
-            plot = pg.PlotWidget(title=f"Beaker {i} Weight")
+            plot = pg.PlotWidget(title=f"Scale {i+1}")
             plot.setLabel('left', 'Weight (g)')
             plot.setLabel('bottom', 'Time (s)')
             plot.showGrid(x=True, y=True)
@@ -171,28 +191,29 @@ class MainWindow(QMainWindow):
                 
         elif 'status' in data:
             print(f"Status update from MCU: {data}")
-            # If calibration was done, we could save the factors to calibration.json
-            # and send them on next boot. For now, it lives in RAM on the ESP32.
 
-    def toggle_logging(self):
-        if self.logger.is_logging:
-            self.logger.stop_logging()
-            self.btn_start_stop.setText("Start Logging")
-            self.le_meas_name.setEnabled(True)
-            self.sb_interval.setEnabled(True)
+    def toggle_logging(self, scale_idx):
+        controls = self.scale_controls[scale_idx]
+        state = self.logger.scale_states[scale_idx]
+        
+        if state['is_logging']:
+            self.logger.stop_logging(scale_idx)
+            controls['btn_start_stop'].setText("Start Logging")
+            controls['le_name'].setEnabled(True)
+            controls['sb_interval'].setEnabled(True)
         else:
-            name = self.le_meas_name.text()
-            interval = self.sb_interval.value()
-            self.logger.start_logging(name, interval)
-            self.btn_start_stop.setText("Stop Logging")
-            self.le_meas_name.setEnabled(False)
-            self.sb_interval.setEnabled(False)
+            name = controls['le_name'].text()
+            interval = controls['sb_interval'].value()
+            self.logger.start_logging(scale_idx, name, interval)
+            controls['btn_start_stop'].setText("Stop Logging")
+            controls['le_name'].setEnabled(False)
+            controls['sb_interval'].setEnabled(False)
             
     def tare_scale(self, scale_idx):
         self.serial_worker.send_command({"cmd": "TARE", "scale": scale_idx})
         
     def calibrate_scale(self, scale_idx):
-        weight = self.calib_spins[scale_idx].value()
+        weight = self.scale_controls[scale_idx]['spin_cal'].value()
         self.serial_worker.send_command({"cmd": "CALIBRATE", "scale": scale_idx, "weight": weight})
 
     def closeEvent(self, event):

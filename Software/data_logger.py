@@ -2,54 +2,57 @@ import csv
 import os
 import json
 import time
+from datetime import datetime
 
 class DataLogger:
     def __init__(self, data_dir="data"):
         self.data_dir = data_dir
         if not os.path.exists(self.data_dir):
             os.makedirs(self.data_dir)
+            
+        # State for each scale: 0 to 3
+        self.scale_states = {
+            i: {'is_logging': False, 'name': "", 'interval': 30, 'last_log_time': 0, 'file_path': ""}
+            for i in range(4)
+        }
         
-        self.is_logging = False
-        self.experiment_name = ""
-        self.log_interval = 30 # seconds (customizable)
-        self.last_log_time = 0
+    def start_logging(self, scale_idx, name, interval):
+        state = self.scale_states[scale_idx]
+        state['name'] = name if name else f"Measurement_Scale{scale_idx+1}"
+        state['interval'] = interval
+        state['is_logging'] = True
+        state['last_log_time'] = time.time()
         
-    def start_logging(self, name, interval):
-        self.experiment_name = name if name else "Experiment"
-        self.log_interval = interval
-        self.is_logging = True
-        self.last_log_time = time.time()
+        date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{date_str}_{state['name']}_Scale{scale_idx+1}.csv"
+        state['file_path'] = os.path.join(self.data_dir, filename)
         
-        file_path = os.path.join(self.data_dir, f"{self.experiment_name}.csv")
-        # Write header if new file
-        if not os.path.exists(file_path):
-            with open(file_path, 'w', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow([
-                    "timestamp", 
-                    "raw_0", "raw_1", "raw_2", "raw_3",
-                    "weight_0", "weight_1", "weight_2", "weight_3"
-                ])
+        # Write header
+        with open(state['file_path'], 'w', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(["timestamp", "datetime", "raw", "weight"])
                 
-    def stop_logging(self):
-        self.is_logging = False
+    def stop_logging(self, scale_idx):
+        self.scale_states[scale_idx]['is_logging'] = False
         
     def process_data(self, data_dict):
-        if not self.is_logging:
-            return
-            
         current_time = time.time()
-        if current_time - self.last_log_time >= self.log_interval:
-            self.last_log_time = current_time
-            file_path = os.path.join(self.data_dir, f"{self.experiment_name}.csv")
-            with open(file_path, 'a', newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow([
-                    current_time,
-                    data_dict['raw'][0], data_dict['raw'][1], data_dict['raw'][2], data_dict['raw'][3],
-                    data_dict['weight'][0], data_dict['weight'][1], data_dict['weight'][2], data_dict['weight'][3]
-                ])
-
+        date_str = datetime.fromtimestamp(current_time).strftime("%Y-%m-%d %H:%M:%S")
+        
+        for i in range(4):
+            state = self.scale_states[i]
+            if state['is_logging']:
+                if current_time - state['last_log_time'] >= state['interval']:
+                    state['last_log_time'] = current_time
+                    with open(state['file_path'], 'a', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerow([
+                            current_time,
+                            date_str,
+                            data_dict['raw'][i],
+                            data_dict['weight'][i]
+                        ])
+                        
     def save_calibration(self, calib_data):
         file_path = os.path.join(self.data_dir, "calibration.json")
         with open(file_path, 'w') as f:
