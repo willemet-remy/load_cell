@@ -64,3 +64,25 @@ class DataLogger:
             with open(file_path, 'r') as f:
                 return json.load(f)
         return None
+
+    def log_calibration_history(self, calib_data):
+        calib_dir = os.path.join(self.data_dir, "calibration_data")
+        if not os.path.exists(calib_dir):
+            os.makedirs(calib_dir)
+            
+        file_path = os.path.join(calib_dir, "calibration_history.csv")
+        file_exists = os.path.exists(file_path)
+        
+        with open(file_path, 'a', newline='') as f:
+            writer = csv.writer(f)
+            if not file_exists:
+                writer.writerow(["date", "sensor", "raw", "weight", "factor"])
+                
+            date_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            writer.writerow([
+                date_str,
+                calib_data.get('scale', 0) + 1,
+                calib_data.get('raw', 0),
+                calib_data.get('weight', 0.0),
+                calib_data.get('factor', 1.0)
+            ])

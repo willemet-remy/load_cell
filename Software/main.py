@@ -1,9 +1,11 @@
 import sys
 import time
+import os
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QPushButton, QLabel, QLineEdit, QComboBox, QGroupBox, QSpinBox,
                              QGridLayout, QDoubleSpinBox)
 from PyQt6.QtCore import pyqtSlot
+from PyQt6.QtGui import QIcon
 import pyqtgraph as pg
 
 from serial_worker import SerialWorker
@@ -15,6 +17,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Load Cell Monitor")
         self.resize(1200, 800)
         
+        icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "icon.png")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
+            
         self.logger = DataLogger()
         self.serial_worker = SerialWorker()
         self.serial_worker.data_received.connect(self.on_data_received)
@@ -47,11 +53,17 @@ class MainWindow(QMainWindow):
         self.btn_refresh.clicked.connect(self.refresh_ports)
         self.btn_connect = QPushButton("Connect")
         self.btn_connect.clicked.connect(self.toggle_connection)
+        
+        # Clear graphs button
+        self.btn_clear_plots = QPushButton("Clear Graphs")
+        self.btn_clear_plots.clicked.connect(self.clear_graphs)
+        
         self.lbl_status = QLabel("Disconnected")
         
         conn_layout.addWidget(self.port_combo)
         conn_layout.addWidget(self.btn_refresh)
         conn_layout.addWidget(self.btn_connect)
+        conn_layout.addWidget(self.btn_clear_plots)
         conn_layout.addWidget(self.lbl_status)
         conn_group.setLayout(conn_layout)
         left_panel.addWidget(conn_group)
@@ -99,7 +111,7 @@ class MainWindow(QMainWindow):
             
             cal_layout.addWidget(QLabel("Name:"), 4, 0)
             cal_layout.addWidget(le_meas_name, 4, 1)
-            cal_layout.addWidget(QLabel("Interval(s):"), 5, 0)
+            cal_layout.addWidget(QLabel("Interval (s):"), 5, 0)
             cal_layout.addWidget(sb_interval, 5, 1)
             cal_layout.addWidget(btn_start_stop, 6, 0, 1, 2)
             
@@ -134,6 +146,7 @@ class MainWindow(QMainWindow):
             plot.setLabel('left', 'Weight (g)')
             plot.setLabel('bottom', 'Time (s)')
             plot.showGrid(x=True, y=True)
+            plot.setXRange(0, 60, padding=0)
             # Use different colors for plots
             colors = [(255,0,0), (0,255,0), (0,0,255), (255,255,0)]
             curve = plot.plot(pen=pg.mkPen(color=colors[i], width=2))
@@ -153,18 +166,23 @@ class MainWindow(QMainWindow):
         
     def toggle_connection(self):
         if self.serial_worker.is_running:
+            self.btn_connect.setEnabled(False)
+            self.lbl_status.setText("Disconnecting...")
             self.serial_worker.disconnect_port()
-            self.btn_connect.setText("Connect")
         else:
             port = self.port_combo.currentText()
             if port:
+                self.btn_connect.setEnabled(False)
+                self.lbl_status.setText("Connecting...")
                 self.serial_worker.connect_port(port)
-                self.btn_connect.setText("Disconnect")
                 
     @pyqtSlot(bool, str)
     def on_connection_status(self, connected, msg):
         self.lbl_status.setText(msg)
-        if not connected:
+        self.btn_connect.setEnabled(True)
+        if connected:
+            self.btn_connect.setText("Disconnect")
+        else:
             self.btn_connect.setText("Connect")
             
     @pyqtSlot(dict)
@@ -180,17 +198,31 @@ class MainWindow(QMainWindow):
             for i in range(4):
                 self.weight_data[i].append(data['weight'][i])
             
-            # Keep only last 100 points for smooth scrolling
-            if len(self.time_data) > 100:
+            # Keep exactly last 60 seconds of data (with 5s buffer to prevent edge cutting)
+            while self.time_data and (current_t - self.time_data[0] > 65.0):
                 self.time_data.pop(0)
                 for i in range(4):
                     self.weight_data[i].pop(0)
                     
+            x_min = max(0.0, current_t - 60.0)
+            x_max = max(60.0, current_t)
+            
             for i in range(4):
                 self.curves[i].setData(self.time_data, self.weight_data[i])
-                
+                self.plots[i].setXRange(x_min, x_max, padding=0)
+
         elif 'status' in data:
+            if data['status'] == 'CALIBRATED':
+                self.logger.log_calibration_history(data)
             print(f"Status update from MCU: {data}")
+
+    def clear_graphs(self):
+        self.start_time = time.time()
+        self.time_data.clear()
+        for i in range(4):
+            self.weight_data[i].clear()
+            self.curves[i].setData([], [])
+            self.plots[i].setXRange(0.0, 60.0, padding=0)
 
     def toggle_logging(self, scale_idx):
         controls = self.scale_controls[scale_idx]

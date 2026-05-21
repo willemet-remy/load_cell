@@ -64,6 +64,33 @@ Here are the different ways you can tackle the data transmission and processing.
 
 ---
 
+# How to Use
+
+## 1. First-Time Setup
+Before running the software for the first time, you must install the required dependencies:
+1. Double-click the `install.bat` file located in the main project folder.
+2. This will automatically install all the necessary Python packages. You only need to do this once.
+
+## 2. Running the Software
+1. Double-click `Run_Load_Cell.bat` in the main folder to launch the Load Cell Monitor application.
+2. Ensure your ESP32 is plugged into the computer via USB.
+3. In the application's left panel, click **Refresh Ports**, select the correct COM port for your ESP32, and click **Connect**.
+
+## 3. Calibration
+Before starting a measurement, it is highly recommended to calibrate your scales:
+1. Ensure the scale platform is empty (or holds an empty beaker), then click **Tare** on the corresponding scale to set its baseline to zero.
+2. Place a known weight (e.g., 500g) on the scale.
+3. Enter the exact weight in the "Known Wt (g)" box and click **Calibrate**.
+4. The software will automatically save a record of this calibration to the `Software/data/calibration_data/calibration_history.csv` file so you can track sensor accuracy over time.
+
+## 4. Logging Data
+1. For each scale you want to record, enter a **Name** for your measurement and choose the logging **Interval(s)** (in seconds).
+2. Click **Start Logging**.
+3. The software will begin recording the weight at your chosen interval. 
+4. Measurement data is saved continuously as CSV files inside the `Software/data/` folder.
+
+---
+
 # Questions
 1. Where to order the components.
 2. How to produce the mechanical mounting for the load cells. 

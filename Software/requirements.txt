@@ -2,3 +2,4 @@ pyserial
 PyQt6
 pyqtgraph
 pandas
+Pillow

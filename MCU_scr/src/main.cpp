@@ -48,6 +48,8 @@ void calibrateScale(int scaleIdx, float known_weight) {
     resp["status"] = "CALIBRATED";
     resp["scale"] = scaleIdx;
     resp["factor"] = calibration_factors[scaleIdx];
+    resp["raw"] = raw_val;
+    resp["weight"] = known_weight;
     serializeJson(resp, Serial);
     Serial.println();
   }
