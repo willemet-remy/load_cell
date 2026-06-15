@@ -1,7 +1,27 @@
-# Project Overview - Load cell
+# Project Overview - **Load cell**
 
-This document outlines the Bill of Materials (BOM) and connection for monitoring the weight of four 500ml beakers filling with water slowly. The system uses an ESP32 microcontroller to interface with load cells and transmits the data to a computer. This load cell will be use in a constant head soil saturated conductivity set-up. It will allow the flow measurements passing trough a soil core. 
+This document describes the Bill of Materials (BOM), hardware connections, and software components of a system designed to monitor the weight of four 500 mL beakers that gradually fill with water. The system uses an ESP32 microcontroller to interface with load cells and transmit measurement data to a computer for logging and visualization.
 
+The device is intended for use in a constant-head saturated hydraulic conductivity setup. By continuously monitoring the mass of water collected from the outflow of soil cores, the system enables accurate determination of flow rates and supports the calculation of saturated hydraulic conductivity.
+
+---
+
+# Folder structure
+
+- **3D_model/**
+  - Fusion 360 design files and STEP models ready for 3D printing.
+
+- **MCU_scr/**
+  - PlatformIO project containing the firmware source code for the ESP32 microcontroller.
+
+- **Software/**
+  - Python-based graphical user interface (GUI).
+
+- **data/**
+  - Calibration files (`.json`) and measurement data.
+
+- **install.bat**
+  - Installation script used to verify and install the required software packages and dependencies.
 ---
 
 # Bill of Materials (BOM)
@@ -53,14 +73,13 @@ Each HX711 requires power and two data pins (Data/DT and Clock/SCK). Since the E
 | **Module 4 DT** | GPIO 32 | Data Line for Beaker 4 |
 | **Module 4 SCK**| GPIO 33 | Clock Line for Beaker 4 |
 
-# Implementation Options
+## 3. ESP32 to USB Serial Connection 
+The ESP32 is connected to the computer via the USB serial connection. 
 
-Here are the different ways you can tackle the data transmission and processing.
-
-## USB Serial Connection (Recommended for Simplicity)
-- **How it works:** The ESP32 is plugged into the computer via USB. A Python/R script on the computer reads the COM port in real-time.
-- **Pros:** Extremely simple to code. Very reliable (no network dropouts). Powers the ESP32 directly from the PC.
-- **Cons:** The ESP32 must be physically tethered to the computer.
+# Esp 32 programmation
+The ESP32 microcontroller (MCU) must be programmed before use. The firmware has been developed using the 'PlatformIO' framework.
+Users should refer to the PlatformIO documentation for instructions on setting up the development environment, compiling the project, and uploading the firmware to the ESP32.
+Once PlatformIO is installed, open the project folder and follow the standard PlatformIO procedure to build and flash the firmware to the MCU.
 
 ---
 
@@ -89,14 +108,7 @@ Before starting a measurement, it is highly recommended to calibrate your scales
 3. The software will begin recording the weight at your chosen interval. 
 4. Measurement data is saved continuously as CSV files inside the `Software/data/` folder.
 
----
-
-# Questions
-1. Where to order the components.
-2. How to produce the mechanical mounting for the load cells. 
-3. Can we have access to electronic equipment: cables (4 cores and 2 cores) and soldering iron
-4. How to produce the 8 supports. Is there a 3D printer that I can use somewhere?  
 
 
-### Contact 
+# Contact 
 Rémy Willemet : remy.willemet@ilvo.vlaanderen.be
