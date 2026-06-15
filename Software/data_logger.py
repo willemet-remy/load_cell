@@ -12,7 +12,7 @@ class DataLogger:
             
         # State for each scale: 0 to 3
         self.scale_states = {
-            i: {'is_logging': False, 'name': "", 'interval': 30, 'last_log_time': 0, 'file_path': ""}
+            i: {'is_logging': False, 'name': "", 'interval': 30, 'last_log_time': 0, 'start_time': 0, 'file_path': ""}
             for i in range(4)
         }
         
@@ -22,6 +22,7 @@ class DataLogger:
         state['interval'] = interval
         state['is_logging'] = True
         state['last_log_time'] = time.time()
+        state['start_time'] = state['last_log_time']
         
         date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"{date_str}_{state['name']}_Scale{scale_idx+1}.csv"
@@ -30,7 +31,7 @@ class DataLogger:
         # Write header
         with open(state['file_path'], 'w', newline='') as f:
             writer = csv.writer(f)
-            writer.writerow(["timestamp", "datetime", "raw", "weight"])
+            writer.writerow(["timestamp", "datetime", "elapsed_s", "raw", "weight"])
                 
     def stop_logging(self, scale_idx):
         self.scale_states[scale_idx]['is_logging'] = False
@@ -44,11 +45,13 @@ class DataLogger:
             if state['is_logging']:
                 if current_time - state['last_log_time'] >= state['interval']:
                     state['last_log_time'] = current_time
+                    elapsed_s = current_time - state['start_time']
                     with open(state['file_path'], 'a', newline='') as f:
                         writer = csv.writer(f)
                         writer.writerow([
                             current_time,
                             date_str,
+                            f"{elapsed_s:.1f}",
                             data_dict['raw'][i],
                             data_dict['weight'][i]
                         ])

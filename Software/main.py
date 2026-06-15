@@ -262,7 +262,7 @@ class MainWindow(QMainWindow):
         
         # Connection Group
         conn_group = QGroupBox("Connection")
-        conn_layout = QVBoxLayout()
+        conn_layout = QGridLayout()
         self.port_combo = QComboBox()
         self.btn_refresh = QPushButton("Refresh Ports")
         self.btn_refresh.setProperty("theme", "secondary")
@@ -276,10 +276,10 @@ class MainWindow(QMainWindow):
         self.lbl_status.setProperty("status", "disconnected")
         self.lbl_status.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        conn_layout.addWidget(self.port_combo)
-        conn_layout.addWidget(self.btn_refresh)
-        conn_layout.addWidget(self.btn_connect)
-        conn_layout.addWidget(self.lbl_status)
+        conn_layout.addWidget(self.port_combo, 0, 0)
+        conn_layout.addWidget(self.btn_refresh, 0, 1)
+        conn_layout.addWidget(self.btn_connect, 1, 0)
+        conn_layout.addWidget(self.lbl_status, 1, 1)
         conn_group.setLayout(conn_layout)
         left_panel.addWidget(conn_group)
         
@@ -363,7 +363,7 @@ class MainWindow(QMainWindow):
             plot_container = QFrame()
             plot_container.setObjectName("plot_container")
             container_layout = QVBoxLayout(plot_container)
-            container_layout.setContentsMargins(10, 10, 10, 10)
+            container_layout.setContentsMargins(8 , 8, 8, 8)
             container_layout.setSpacing(5)
             
             # Header
@@ -546,6 +546,7 @@ class MainWindow(QMainWindow):
             interval = int(controls['cb_interval'].currentText())
             self.logger.start_logging(scale_idx, name, interval)
             self.logging_start_times[scale_idx] = time.time()
+            self.clear_scale_graph(scale_idx)
             controls['btn_start_stop'].setText("Stop Logging")
             controls['btn_start_stop'].setProperty("theme", "danger")
             controls['le_name'].setEnabled(False)
