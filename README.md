@@ -1,4 +1,5 @@
 # Beaker Load Cell Monitoring System
+[![DOI](https://zenodo.org/badge/1236520617.svg)](https://doi.org/10.5281/zenodo.20725690)
 
 This repository contains the complete open-source hardware designs, ESP32 microcontroller firmware, and Python-based graphical user interface (GUI) for a 4-channel weight scale system. 
 
