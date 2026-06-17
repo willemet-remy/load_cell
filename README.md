@@ -5,27 +5,33 @@ This repository contains the complete open-source hardware designs, ESP32 microc
 The system is designed to monitor the outflow of up to four 500 mL beakers filling gradually with water. It is suited for laboratory setups requiring continuous measurements, such as **constant-head saturated hydraulic conductivity ($K_{sat}$) measurements** of soil cores. By measuring the mass increase of the collected outflow over time, flow rates and hydraulic conductivity can be precisely and automatically calculated.
 
 In addition, the GUI support a clear calibration per sensors, to be able to see the calibration driven with time of the load cell.
+
+[Supports_Drawing.png](3D_model/Supports_Drawing.png)
+
+Schematic representation of the load cell.
 ---
 
 ## Directory Structure
 
-*   [3D_model/](file:///3D_model/)
-    *   Fusion 360 source designs (`.f3d`), STEP files, and STL files for 3D-printing the beaker support structures.
-    *   [Supports Drawing.pdf](file:///3D_model/Supports%20Drawing.pdf) / [Supports_Drawing.png](file:///3D_model/Supports_Drawing.png): Technical schematics of the 3D-printed support plates.
-*   [MCU_scr/](file:///MCU_scr/)
-    *   PlatformIO project containing the C++ ESP32 firmware.
-*   [Software/](file:///Software/)
-    *   Python PyQt6 desktop GUI application for real-time plotting, scaling, taring, and logging.
-*   [Pictures/](file:///Pictures/)
-    *   Photographs of the physical setup and software interface.
-*   [data/](file:///data/)
-    *   Target folder where calibration files and measurement logs (`.csv`) are saved.
+* [3D_model/](3D_model/)
+  * Fusion 360 source designs (`.f3d`), STEP files, and STL files for 3D-printing the beaker support structures.
 
+* [MCU_scr/](MCU_scr/)
+  * PlatformIO project containing the C++ ESP32 firmware.
+
+* [Software/](Software/)
+  * Python PyQt6 desktop GUI application for real-time plotting, scaling, taring, and logging.
+
+* [Pictures/](Pictures/)
+  * Photographs of the physical setup and software interface.
+
+* [data/](data/)
+  * Target folder where calibration files and measurement logs (`.csv`) are saved.
 ---
 
 ## Bill of Materials (BOM)
 
-| Item | Quantity | Description / Purpose | Est. Cost (approx.) |
+| Item | Quantity | Description | Est. Cost (approx.) |
 | :--- | :---: | :--- | :--- |
 | **ESP32 DevKitC** | 1 | Microcontroller for sensor communication and serial data output. | 65 RMB |
 | **1kg Load Cells** | 4 | Straight-beam load cells (TAL220). 1kg capacity is selected to accommodate the 500 mL water volume (~500g) plus the tare weight of the glass beaker (~150-200g). | 50 RMB / pc |
