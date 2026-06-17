@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Willemet
+    given-names: Rémy
+    orcid: https://orcid.org/0009-0008-5801-994X
+  - family-names: Dong
+    given-names: Dongyuhao
+    orcid: https://orcid.org/0009-0001-7897-9082
+  - family-names: Ren
+    given-names: Lidong
+    orcid: https://orcid.org/0000-0002-6547-0084
+    
+title: "Beaker Load Cell Monitoring System"
+version: 1.0
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.20725691
+date-released: 2026-06-17
