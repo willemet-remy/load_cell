@@ -6,9 +6,9 @@ The system is designed to monitor the outflow of up to four 500 mL beakers filli
 
 In addition, the GUI support a clear calibration per sensors, to be able to see the calibration driven with time of the load cell.
 
-[Supports_Drawing.png](3D_model/Supports_Drawing.png)
+![Physical Laboratory Setup](Pictures/Installation.png)
 
-Schematic representation of the load cell.
+Physical lab setup
 ---
 
 ## Directory Structure
@@ -43,7 +43,7 @@ Schematic representation of the load cell.
 
 ---
 
-## 3D-Printed Support Setup
+## Experiemental setup Setup
 
 Each load cell must be mounted in a cantilever ("Z" structure) configuration to allow bending under weight. The 3D-printed plates ensure stable mounting of the load cells and the beakers.
 
@@ -51,6 +51,16 @@ Each load cell must be mounted in a cantilever ("Z" structure) configuration to 
 Below is the technical schematic of the 3D-printed support plate:
 
 ![3D Model Support Drawing](3D_model/Supports_Drawing.png)
+
+### Sensor Mounting Detail
+Close-up view of the 3D-printed support mount:
+
+![Installation Setup Detail](Pictures/Prototype.png)
+
+### Desktop GUI Software
+The user interface displaying real-time data from the 4 scales:
+
+![Desktop GUI Interface](Pictures/Program.png)
 
 *The CAD source files (`.f3d`) and 3D-printable files (`.stl`) can be found in the [3D_model/](file:///3D_model/) folder.*
 
@@ -118,24 +128,6 @@ The ESP32 uses 3.3V logic. Power the HX711 modules using the 3.3V pin from the E
    * Enter a measurement name and logging interval (seconds).
    * Click **Start Logging** to begin saving to CSV.
 
----
-
-## Experimental Setup & Software UI
-
-### Physical Lab Setup
-Below is a photograph of the physical 4-channel beaker monitoring system:
-
-![Physical Laboratory Setup](Pictures/Installation.JPG)
-
-### Sensor Mounting Detail
-Close-up view of the 3D-printed support mount:
-
-![Installation Setup Detail](Pictures/Prototype.jpg)
-
-### Desktop GUI Software
-The user interface displaying real-time data from the 4 scales:
-
-![Desktop GUI Interface](Pictures/Program.png)
 
 ---
 
