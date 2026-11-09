@@ -1,4 +1,4 @@
-# Beaker Load Cell Monitoring System
+# Load Cell Monitoring Scale System
 [![DOI](https://zenodo.org/badge/1236520617.svg)](https://doi.org/10.5281/zenodo.20725690)
 
 **Load Cell Monitoring Scale System** is an automated 4-channel weighing data logger designed to monitor countinuous weight measurements. 
