@@ -1,8 +1,5 @@
-# Load Cell Monitoring Scale System
-[![PlatformIO](https://img.shields.io/badge/PlatformIO-ESP32-orange.svg)](https://platformio.org/)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![Sensor](https://img.shields.io/badge/Sensor-TAL220%20%2F%20HX711-informational.svg)]()
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+# Beaker Load Cell Monitoring System
+[![DOI](https://zenodo.org/badge/1236520617.svg)](https://doi.org/10.5281/zenodo.20725690)
 
 **Load Cell Monitoring Scale System** is an automated 4-channel weighing data logger designed to monitor countinuous weight measurements. 
 
@@ -90,6 +87,13 @@ Cumulative outflow mass $m(t)$ translates directly to outflow volume $V(t) = m(t
 
 This project utilizes separate licensing for hardware designs and software:
 
+<<<<<<< HEAD
 - **Hardware Designs** (`3D_model/`): Licensed under the **[CERN Open Hardware Licence Version 2 - Permissive (CERN-OHL-P v2)](LICENSE)**.
   - Copyright © 2026 **Rémy Willemet**.
 - **Software & Firmware** (`MCU_scr/`, `Software/`, root scripts): Dedicated to the **Public Domain** under **[Creative Commons CC0 1.0 Universal](LICENSE)** (or The Unlicense) with no copyright reserved.
+=======
+## Contact
+**Rémy Willemet**
+Research Institute for Agriculture, Fisheries and Food (ILVO)  
+Email: [remy.willemet@ilvo.vlaanderen.be](mailto:remy.willemet@ilvo.vlaanderen.be)
+>>>>>>> a67f26da75e6e8085ce09e82e3754a0288211e71
