@@ -1,152 +1,95 @@
-# Beaker Load Cell Monitoring System
+# Load Cell Monitoring Scale System
+[![PlatformIO](https://img.shields.io/badge/PlatformIO-ESP32-orange.svg)](https://platformio.org/)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Sensor](https://img.shields.io/badge/Sensor-TAL220%20%2F%20HX711-informational.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-This repository contains the complete open-source hardware designs, ESP32 microcontroller firmware, and Python-based graphical user interface (GUI) for a 4-channel weight scale system. 
+**Load Cell Monitoring Scale System** is an automated 4-channel weighing data logger designed to monitor countinuous weight measurements. 
 
-The system is designed to monitor the outflow of up to four 500 mL beakers filling gradually with water. It is suited for laboratory setups requiring continuous measurements, such as **constant-head saturated hydraulic conductivity ($K_{sat}$) measurements** of soil cores. By measuring the mass increase of the collected outflow over time, flow rates and hydraulic conductivity can be precisely and automatically calculated.
+The system was conceptualized to improve the accuracy and efficiency of soil hydraulic conductivity measurements (such as constant-head saturated hydraulic conductivity, $K_{sat}$, of soil cores) while allowing a greater number of replicates to be performed within the same timeframe. Instead of manually recording beaker masses or reading volumetric cylinders with a stopwatch, four straight-beam load cells (TAL220) mounted in 3D-printed cantilever supports continuously measure the mass of water collected in up to four 500 mL beakers. The readings are digitized by 24-bit HX711 amplifiers and streamed via USB to a desktop application for automated real-time logging.
 
-In addition, the GUI support a clear calibration per sensors, to be able to see the calibration driven with time of the load cell.
+The companion GUI supports multi-point calibration per channel, tracks sensor calibration drift over time, and logs cumulative outflow curves directly to CSV.
 
-![Physical Laboratory Setup](Pictures/Installation.png)
+| Laboratory setup | 3D-printed load cell support |
+| :---: | :---: |
+| <img src="Pictures/Installation.png" alt="Laboratory setup" height="320"/> | <img src="Pictures/Prototype.png" alt="3D-printed load cell cantilever support" height="320"/> |
 
-Physical lab setup
----
+## How it works
 
-## Directory Structure
+- **4-channel 24-bit precision**: Four 1 kg straight-beam load cells (TAL220) paired with dedicated HX711 ADC amplifiers monitor up to four 500 mL beakers (~500 g water + ~150–200 g beaker tare).
+- **1 Hz live data streaming**: The ESP32 continuously polls all four scales and streams raw 24-bit readings and calibrated weights over USB serial (`115200` baud) in a lightweight JSON format.
+- **Multi-point calibration & drift tracking**: Calibration factors and tare offsets are handled per sensor, stored in `data/calibration.json`, and can be re-calibrated at any time with known reference weights.
+- **Independent logging channels**: Each scale can be started, stopped, named, and logged at independent recording intervals (e.g. 5, 10, or 30 seconds).
 
-* [3D_model/](3D_model/)
-  * Fusion 360 source designs (`.f3d`), STEP files, and STL files for 3D-printing the beaker support structures.
+## Hardware & wiring
 
-* [MCU_scr/](MCU_scr/)
-  * PlatformIO project containing the C++ ESP32 firmware.
+| Scale Channel | HX711 Pin | ESP32 Pin (GPIO) | Function |
+| :--- | :--- | :--- | :--- |
+| **Power** | `VCC` / `VDD` & `GND` | `3V3` & `GND` | Common 3.3 V power and ground |
+| **Scale 1** | `DT` / `SCK` | `GPIO 16` / `GPIO 17` | Channel 1 Data & Clock |
+| **Scale 2** | `DT` / `SCK` | `GPIO 18` / `GPIO 19` | Channel 2 Data & Clock |
+| **Scale 3** | `DT` / `SCK` | `GPIO 22` / `GPIO 23` | Channel 3 Data & Clock |
+| **Scale 4** | `DT` / `SCK` | `GPIO 32` / `GPIO 33` | Channel 4 Data & Clock |
 
-* [Software/](Software/)
-  * Python PyQt6 desktop GUI application for real-time plotting, scaling, taring, and logging.
+Load cells are wired to each HX711 using standard 4-wire Wheatstone bridge colors: `Red` (`E+`), `Black` (`E-`), `White` (`A-`), `Green` (`A+`).
 
-* [Pictures/](Pictures/)
-  * Photographs of the physical setup and software interface.
+CAD models (`.f3d`), technical drawings ([`Supports_Drawing.png`](3D_model/Supports_Drawing.png)), and ready-to-print STL files for the cantilever plates are in [`3D_model/`](3D_model/).
 
-* [data/](data/)
-  * Target folder where calibration files and measurement logs (`.csv`) are saved.
----
+## Flashing the firmware
 
-## Bill of Materials (BOM)
+The firmware in [`MCU_scr/`](MCU_scr/) is built with [PlatformIO](https://platformio.org/):
 
-| Item | Quantity | Description | Est. Cost (approx.) |
-| :--- | :---: | :--- | :--- |
-| **ESP32 DevKitC** | 1 | Microcontroller for sensor communication and serial data output. | 65 RMB |
-| **1kg Load Cells** | 4 | Straight-beam load cells (TAL220). 1kg capacity is selected to accommodate the 500 mL water volume (~500g) plus the tare weight of the glass beaker (~150-200g). | 50 RMB / pc |
-| **HX711 Amplifiers** | 4 | 24-bit Analog-to-Digital Converter (ADC) modules for weigh scales. | 39 RMB / pc |
-| **3D-Printed Supports**| 4 sets | Two plates per load cell (base plate and beaker platform) to mount sensors. | 3D Printed |
-| **M4 / M5 Screws & Spacers** | 1 set | Screws, nuts, and spacers to mount the load cells in a cantilever ("Z") configuration. | Generic |
-| **Jumper Wires** | 1 pack | Dupont wires for connecting modules to the ESP32. | Generic |
-| **Micro-USB Cable** | 1 | Cable for serial communication and ESP32 power. | Generic |
+```powershell
+cd MCU_scr
+pio run -t upload
+```
 
----
+The ESP32 samples all four scales, responds to JSON commands (`TARE`, `CALIBRATE`, `SET_CALIBRATION`), and streams live JSON data over USB serial at `115200` baud.
 
-## Experiemental setup Setup
+## Desktop app & laboratory workflow
 
-Each load cell must be mounted in a cantilever ("Z" structure) configuration to allow bending under weight. The 3D-printed plates ensure stable mounting of the load cells and the beakers.
+Install Python dependencies and launch the PyQt6 interface:
 
-### Technical Schematic
-Below is the technical schematic of the 3D-printed support plate:
+```powershell
+python -m pip install -r Software/requirements.txt
+python Software/main.py
+```
 
-![3D Model Support Drawing](3D_model/Supports_Drawing.png)
+*(On Windows, `install.bat` and `Run_Load_Cell.bat` can also be used directly).*
 
-### Sensor Mounting Detail
-Close-up view of the 3D-printed support mount:
+1. **Connect**: Select the serial COM port (`115200` baud) and click **Connect**.
+2. **Tare & Calibrate**: Clear the scale platform and click **Tare**. Place a known calibration weight (e.g. 20 g, 50 g, 100 g), enter its value in grams, and click **Calibrate**. The calibration dialog allows inspecting calibration curves and tracking load cell drift over time.
+3. **Set logging parameters**: Assign a sample/replicate name and logging interval (seconds) for each active scale.
+4. **Log outflow**: Click **Start Logging** on active channels. Cumulative mass readings are plotted in real time and saved directly to CSV.
 
-![Installation Setup Detail](Pictures/Prototype.png)
+<p align="center">
+  <img src="Pictures/Program.png" alt="Desktop acquisition software" width="750"/>
+</p>
 
-### Desktop GUI Software
-The user interface displaying real-time data from the 4 scales:
+## CSV output
 
-![Desktop GUI Interface](Pictures/Program.png)
+Data is written to `data/{YYYYMMDD_HHMMSS}_{name}_Scale{N}.csv`. Each row logs:
 
-*The CAD source files (`.f3d`) and 3D-printable files (`.stl`) can be found in the [3D_model/](file:///3D_model/) folder.*
+`timestamp`, `datetime`, `elapsed_s`, `raw`, `weight`
 
----
+Cumulative outflow mass $m(t)$ translates directly to outflow volume $V(t) = m(t) / \rho_w$. When combined with the soil core cross-sectional area, sample height, and hydraulic head, saturated hydraulic conductivity ($K_{sat}$) can be calculated from the steady-state outflow slope via Darcy's law.
 
-## Wiring Connections
+## Repository layout
 
-### 1. Load Cell to HX711 Amplifier
-Connect each load cell's Wheatstone bridge wires to its dedicated HX711 amplifier module:
+- [`3D_model/`](3D_model/) — Fusion 360 models, technical drawings, and 3D-printable cantilever support plates
+- [`MCU_scr/`](MCU_scr/) — ESP32 firmware (PlatformIO project)
+- [`Software/`](Software/) — Python PyQt6 desktop acquisition and calibration interface
+- [`Pictures/`](Pictures/) — Laboratory setup photographs and GUI previews
+- [`data/`](data/) — Output folder for CSV logs and persistent `calibration.json`
 
-| Load Cell Wire Color | HX711 Pin | Function |
-| :--- | :--- | :--- |
-| **Red** | E+ | Excitation Plus |
-| **Black** | E- | Excitation Minus |
-| **White** | A- | Signal Minus |
-| **Green** | A+ | Signal Plus |
+## Authors
 
-### 2. HX711 Amplifiers to ESP32 DevKitC
-The ESP32 uses 3.3V logic. Power the HX711 modules using the 3.3V pin from the ESP32 to ensure safe logic levels.
-
-| HX711 Pin | ESP32 Pin (GPIO) | Description |
-| :--- | :--- | :--- |
-| VCC / VDD | 3V3 | Power (3.3V Logic) |
-| GND | GND | Ground |
-| **Module 1 DT** | GPIO 16 | Scale 1 Data Line |
-| **Module 1 SCK**| GPIO 17 | Scale 1 Clock Line |
-| **Module 2 DT** | GPIO 18 | Scale 2 Data Line |
-| **Module 2 SCK**| GPIO 19 | Scale 2 Clock Line |
-| **Module 3 DT** | GPIO 22 | Scale 3 Data Line |
-| **Module 3 SCK**| GPIO 23 | Scale 3 Clock Line |
-| **Module 4 DT** | GPIO 32 | Scale 4 Data Line |
-| **Module 4 SCK**| GPIO 33 | Scale 4 Clock Line |
-
----
-
-## Installation & Usage
-
-### 1. Microcontroller Firmware Setup
-1. Install [PlatformIO IDE](https://platformio.org/) (either via VS Code extension or standalone command line).
-2. Open the [MCU_scr/](file:///MCU_scr/) folder in PlatformIO.
-3. Connect the ESP32 to your computer via USB.
-4. Build and flash the firmware using the PlatformIO interface or by running:
-   ```bash
-   pio run --target upload
-   ```
-
-### 2. Python GUI Setup
-1. Double-click the `install.bat` file in the main repository directory. This script will install Python dependencies (PyQt6, pyqtgraph, pyserial).
-2. Alternatively, run the following in your terminal:
-   ```bash
-   pip install -r Software/requirements.txt
-   ```
-
-### 3. Running the System
-1. Run the system using `Run_Load_Cell.bat` or by executing:
-   ```bash
-   python Software/main.py
-   ```
-2. Select the correct **COM Port** from the dropdown menu, choose a baudrate (115200), and click **Connect**.
-3. **Tare & Calibration**:
-   * Clear the scale platform and click **Tare** for the target scale.
-   * Place a known calibration weight on the platform, enter the weight (in grams) in the input box next to **Calibrate**, and click **Calibrate**.
-   * Calibration factors are stored automatically so they persist across runs.
-4. **Logging**:
-   * Enter a measurement name and logging interval (seconds).
-   * Click **Start Logging** to begin saving to CSV.
-
-
----
-
-## Data Logging Specification
-
-Logged data is saved in CSV format. The CSV logs include:
-*   `Timestamp`: Unix epoch time in seconds.
-*   `Datetime`: Human-readable date and time (`YYYY-MM-DD HH:MM:SS`).
-*   `Scale ID`: Scale indicator (`Scale 1` - `Scale 4`).
-*   `Raw Value`: Raw 24-bit readings from the HX711.
-*   `Weight (g)`: Calibrated weight reading in grams.
-
----
+- **Rémy Willemet** – *ILVO / Ghent University* – [remy.willemet@ilvo.vlaanderen.be](mailto:remy.willemet@ilvo.vlaanderen.be)
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project utilizes separate licensing for hardware designs and software:
 
-## Contact
-**Rémy Willemet**
-Research Institute for Agriculture, Fisheries and Food (ILVO)  
-Email: [remy.willemet@ilvo.vlaanderen.be](mailto:remy.willemet@ilvo.vlaanderen.be)
+- **Hardware Designs** (`3D_model/`): Licensed under the **[CERN Open Hardware Licence Version 2 - Permissive (CERN-OHL-P v2)](LICENSE)**.
+  - Copyright © 2026 **Rémy Willemet**.
+- **Software & Firmware** (`MCU_scr/`, `Software/`, root scripts): Dedicated to the **Public Domain** under **[Creative Commons CC0 1.0 Universal](LICENSE)** (or The Unlicense) with no copyright reserved.
