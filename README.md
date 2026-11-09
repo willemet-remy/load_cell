@@ -9,7 +9,7 @@ The companion GUI supports multi-point calibration per channel, tracks sensor ca
 
 | Laboratory setup | 3D-printed load cell support |
 | :---: | :---: |
-| <img src="Pictures/Installation.png" alt="Laboratory setup" height="320"/> | <img src="Pictures/Prototype.png" alt="3D-printed load cell cantilever support" height="320"/> |
+| <img src="Pictures/Installation.png" alt="Laboratory setup" height="320"/> | <img src="Pictures/Supports_Drawing.png" alt="3D model" height="320"/> |
 
 ## How it works
 
@@ -30,7 +30,8 @@ The companion GUI supports multi-point calibration per channel, tracks sensor ca
 
 Load cells are wired to each HX711 using standard 4-wire Wheatstone bridge colors: `Red` (`E+`), `Black` (`E-`), `White` (`A-`), `Green` (`A+`).
 
-CAD models (`.f3d`), technical drawings ([`Supports_Drawing.png`](3D_model/Supports_Drawing.png)), and ready-to-print STL files for the cantilever plates are in [`3D_model/`](3D_model/).
+CAD models (`.f3d`) and ready-to-print STL files for the cantilever plates are in [`3D_model/`](3D_model/).
+
 
 ## Flashing the firmware
 
